@@ -9,7 +9,7 @@
 FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
 FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
 
-output_dir=/home/jvierstra/proj/genotypes/results
+output_dir=/net/seq/data/projects/genotyping/results.allsamples
 
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 
@@ -55,20 +55,47 @@ bcftools mpileup -r \${region} -Q 20 -d 1000 -I -E -f ${FASTA_FILE} -b ${output_
 	--recode --recode-INFO-all --vcf - \
 | bgzip -c > ${output_dir}/\${region}.filtered.vcf.gz
 
-tabix -p vcf ${output_dir}/\${region}.filtered.vcf.gz
+#tabix -p vcf ${output_dir}/\${region}.filtered.vcf.gz
 
 rm -rf \${TMPDIR}
 __SCRIPT__
 
-##Concatenate and run-relatedness, TsTv, depth, 
-#ls *.filtered.vcf.gz | xargs perl -I vcf-concat | vcf-sort -p 8 | bgzip -c > filtered.all.vcf.gz
-#vcftools --gzvcf filtered.all.vcf.gz --relatedness 
+cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_merge
+#!/bin/bash
+#
+#SBATCH --output=${output_dir}/logs/%A.%a.out
+#SBATCH --mem=16G
+#SBATCH --cpus-per-task=2
+#SBATCH --partition=queue0
 
-#BETTER WAY:
-#bcftools concat -f /tmp/files.txt -Oz -o filtered.all.bcftools.vcf.gz
+TMPDIR=/tmp/\$SLURM_JOB_ID
+mkdir -p \${TMPDIR}
+
+module load bcftools/1.7
+module load vcftools/0.1.14
+module load htslib/1.7
+
+ls ${output_dir}/*.filtered.vcf.gz > \${TMPDIR}/files.txt
+
+# Merge chunks
+bcftools concat -f \${TMPDIR}/files.txt -Oz -o ${output_dir}/filtered.all.vcf.gz
+tabix -p vcf ${output_dir}/filtered.all.vcf.gz
+
+#
+vcftools --temp \${TMPDIR} --gzvcf filtered.all.vcf.gz --out ${output_dir}/filtered.all --relatedness --het --depth --TsTv-by-count --TsTv-by-qual 
+
+__SCRIPT__
 
 JOB0=$(sbatch --export=ALL \
 	--job-name=genotyping \
 	--array=1-${njobs} \
 	${output_dir}/slurm.bam_call_genotypes_chunk)
 echo $JOB0
+
+JOB1=$(sbatch --export=ALL \
+	--job-name=genotyping.merge \
+	--depend=afterok:${JOB0##* }  \
+	${output_dir}/slurm.bam_call_genotypes_merge)
+echo $JOB1
+
+

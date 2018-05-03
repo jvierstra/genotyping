@@ -13,7 +13,7 @@ logging.basicConfig(stream = sys.stdout, level = 20)
 
 vcf_file = sys.argv[1]
 sample = sys.argv[2]
-#region = sys.argv[3]
+#bam_file= sys.argv[3]
 
 vcf = pysam.VariantFile(vcf_file, "rb")
 sam = pysam.AlignmentFile(sample, "rb" )
