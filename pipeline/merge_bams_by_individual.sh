@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-cluster_file=/home/jvierstra/proj/genotypes/cluster.sample.bam.txt
-output_dir=/home/jvierstra/proj/genotypes/results.individual
+cluster_file=/net/seq/data/projects/genotyping/results.allsamples/sample.relatedness.cluster.txt
+output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge1
 
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 
@@ -24,7 +24,7 @@ mkdir -p \${TMPDIR}
 
 module load samtools/1.7
 
-awk -v cl=\${SLURM_ARRAY_TASK_ID} '\$2==cl { print \$3; }' ${cluster_file} > \${TMPDIR}/bamfiles.txt; \
+awk -v cl=\${SLURM_ARRAY_TASK_ID} '\$2==cl { print \$1; }' ${cluster_file} > \${TMPDIR}/bamfiles.txt; \
 
 nfiles=\$(wc -l < \${TMPDIR}/bamfiles.txt)
 first_file=\$(head -n 1 \${TMPDIR}/bamfiles.txt)
