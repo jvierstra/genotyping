@@ -1,4 +1,4 @@
-#!/bin/env
+#!/bin/bash -x
 
 ###
 # TODO:
@@ -6,10 +6,23 @@
 #	-Filter SNPs
 #
 
+
+usage () {
+  echo -e "Usage: $0 <dir-of-bams> <output-dir> <chromInfo.bed> <genome.fasta>" >&2
+  exit 2
+}
+
+if [[ $# != 4 ]]; then
+   usage
+fi
+
+data_dir=$1
+output_dir=$2
+FASTA_CHROM_FILE=$3
+FASTA_FILE=$4
+
 FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
 FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
-
-output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype
 
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 
@@ -25,8 +38,7 @@ njobs=$(wc -l < ${output_dir}/inputs.txt)
 
 
 # Make BAM file list
-#cut -f3  /home/jvierstra/proj/ftd.updated/hg38.DGF.ver4.params.txt > ${output_dir}/filelist.txt
-ls /net/seq/data/projects/genotyping/results.dgf-samples.merge2/*.bam > ${output_dir}/filelist.txt
+readlink `find -L $data_dir/ -maxdepth 1 -mindepth 1 -type f -name "*.bam"` > ${output_dir}/filelist.txt
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_chunk
 #!/bin/bash
@@ -55,7 +67,7 @@ bcftools mpileup -r \${region} \
 	-a FORMAT/DP,FORMAT/AD \
 | bcftools call -f GQ -cv -Ov \
 | vcftools --stdout \
-	--minQ 500 --minGQ 50 --minDP q --max-alleles 2 \
+	--minQ 500 --minGQ 50 --minDP 12 --max-alleles 2 \
 	--recode --recode-INFO-all --vcf - \
 | bgzip -c > ${output_dir}/\${region}.filtered.vcf.gz
 
@@ -79,7 +91,7 @@ module load bcftools/1.7
 module load vcftools/0.1.14
 module load htslib/1.7
 
-cat inputs.txt | awk -v dir="${output_dir}" '{ print dir"/"\$1".filtered.vcf.gz"; }' > \${TMPDIR}/mergelist.txt
+cat ${output_dir}/inputs.txt | awk -v dir="${output_dir}" '{ print dir"/"\$1".filtered.vcf.gz"; }' > \${TMPDIR}/mergelist.txt
 bcftools concat -f \${TMPDIR}/mergelist.txt -Oz -o ${output_dir}/filtered.all.vcf.gz
 tabix -p vcf ${output_dir}/filtered.all.vcf.gz
 
@@ -101,4 +113,4 @@ JOB1=$(sbatch --export=ALL \
 	${output_dir}/slurm.bam_call_genotypes_merge)
 echo $JOB1
 
-
+exit 0
