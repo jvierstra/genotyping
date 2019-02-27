@@ -1,37 +1,39 @@
 
-
 cat <<__SCRIPT__ > cluster.py
 #!/bin/env python
 
 import pandas as pd
 import numpy as np
+import seaborn
 
-from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import dendrogram, fcluster
 import fastcluster
 
-z = pd.read_csv("results/relatedness.dsnums.txt", delimiter = "\t", header = None)
+z = pd.read_csv("$1", delimiter = "\t", header = None, skiprows = 1)
 
 u = z.pivot(index=0, columns=1, values=2)
 
 for i in np.arange(u.shape[0]):
     for j in np.arange(u.shape[1]):
-        if(np.isnan(u.iloc[i, j])):
+        if(pd.isnull(u.iloc[i, j])):
             u.iloc[i, j] = u.iloc[j, i]
 
 u[np.isnan(u)] = 0
 
-D = scipy.spatial.distance.pdist(u, 'correlation')
-L = fastcluster.linkage(D, method = 'complete')
-clusters = fcluster(L, .5, 'distance')
+g = seaborn.clustermap(u, row_cluster=True, col_cluster=True, xticklabels=False, yticklabels=False, cmap='Reds', vmin=0, vmax=1)
+g.savefig("$2.png")
 
-#Write file
+c = g.dendrogram_col.reordered_ind
+r = g.dendrogram_row.reordered_ind
 
-#Diagnostic plots
+c = u.columns[c]
+r = u.index[r]
 
+with open("$2rows.txt", 'w') as fi:
+    for item in r:
+        fi.write("%s\n" % item)
 
-dendro = dendrogram(L, no_plot = False)
-o2 = dendro["leaves"]
+with open("$2cols.txt", 'w') as fi:
+    for item in c:
+        fi.write("%s\n" % item)
 
-clusters = fcluster(L, .5, 'distance')
 __SCRIPT__
