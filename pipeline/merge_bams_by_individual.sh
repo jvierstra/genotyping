@@ -1,8 +1,16 @@
 #!/bin/bash
 
+usage () {
+  echo -e "Usage: $0 <bam-cluster-assignments> <output-dir>" >&2
+  exit 2
+}
 
-cluster_file=/net/seq/data/projects/genotyping/results.allsamples/sample.relatedness.cluster.txt
-output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge1
+if [[ $# != 2 ]]; then
+   usage
+fi
+
+cluster_file=$1
+output_dir=$2
 
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 

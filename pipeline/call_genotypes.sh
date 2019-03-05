@@ -21,9 +21,6 @@ output_dir=$2
 FASTA_CHROM_FILE=$3
 FASTA_FILE=$4
 
-FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
-FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
-
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 
 # Make chunks
