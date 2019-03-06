@@ -35,7 +35,7 @@ njobs=$(wc -l < ${output_dir}/inputs.txt)
 
 
 # Make BAM file list
-readlink `find -L $data_dir/ -maxdepth 1 -mindepth 1 -type f -name "*.bam"` > ${output_dir}/filelist.txt
+readlink -f `find -L $data_dir/ -maxdepth 1 -mindepth 1 -type f -name "*.bam"` > ${output_dir}/filelist.txt
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_chunk
 #!/bin/bash
