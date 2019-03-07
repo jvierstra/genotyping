@@ -1,15 +1,26 @@
-#!/bin/env
+#!/bin/bash
 
-FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
-FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
-GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.hwe.0.01.vcf.gz
+usage () {
+  echo -e "Usage: $0 <genome-chromInfo.bed> <genome.fa> <hwe.0.01.vcf.gz> <output-dir>" >&2
+  exit 2
+}
 
-output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/individual.counts
-rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
+if [[ $# != 4 ]]; then
+   usage
+fi
+
+FASTA_CHROM_FILE=$1
+FASTA_FILE=$2
+GZVCF_FILE=$3
+output_dir=$4
+
+module load python
+module load bcftools
 
 #Get samples
-bcftools query -l ${GZVCF_FILE} > /tmp/samples.txt
-cat /tmp/samples.txt > ${output_dir}/inputs.txt
+bcftools query -l ${GZVCF_FILE} \
+  | awk '{ n=split($1, a, "/"); nm=a[7]"."a[n]; print $1"\t"nm; }' \
+  > ${output_dir}/inputs.txt
 
 njobs=$(wc -l < ${output_dir}/inputs.txt)
 echo "njobs: $njobs"
@@ -24,13 +35,18 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_chunk
 
 set -e -o pipefail
 
+module add numpy
+
 TMPDIR=/tmp/\$SLURM_JOB_ID
 mkdir -p \${TMPDIR}
 
-params=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
-prefix=\`basename \${params[0]} | cut -d"." -f1,2\`
+params=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1 | cut -f1\`)
+echo \$params
 
-python /home/jvierstra/proj/code/genotyping/scripts/count_tags.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
+prefix=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1 | cut -f2\`)
+echo \$prefix
+
+python count_tags.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
 __SCRIPT__
 
 
