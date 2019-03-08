@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 usage () {
   echo -e "Usage: $0 <genome-chromInfo.bed> <genome.fa> <hwe.0.01.vcf.gz> <output-dir>" >&2
@@ -26,7 +26,7 @@ njobs=$(wc -l < ${output_dir}/inputs.txt)
 echo "njobs: $njobs"
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_chunk
-#!/bin/bash
+#!/bin/bash -x
 #
 #SBATCH --output=${output_dir}/logs/%A.%a.out
 #SBATCH --mem=4G
@@ -51,30 +51,33 @@ __SCRIPT__
 
 
 JOB0=$(sbatch --export=ALL \
-	--job-name=allelic.reads \
-	--array=1-${njobs} \
-	${output_dir}/slurm.bam_count_tags_chunk)
+    --job-name=allelic.reads \
+    --array=1-${njobs} \
+    ${output_dir}/slurm.bam_count_tags_chunk)
 echo $JOB0
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_merge
-#!/bin/bash
+#!/bin/bash -x
 #
 #SBATCH --output=${output_dir}/logs/%J.out
 #SBATCH --mem=4G
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=queue0
 
-cmd=""
-LNS=(\`cat ${output_dir}/inputs.txt | xargs -L1 'basename' | cut -f1,2 -d"."\`)
-for ln in \${LNS[@]}; do 
-	cmd="\$cmd <(cut -f5 \${ln}.bed)"
+
+LNS=(\`cat ${output_dir}/inputs.txt | cut -f2\`)
+cmd=()
+for ln in \${LNS[@]}; do
+    cmd=(\${cmd[@]} "<(cut -f5 $output_dir"/"\${ln}.bed)")
 done;
-cmd="paste <(cut -f1-4 \${LNS[0]}.bed) $cmd"
-eval \$cmd > ${output_dir}/merged.counts.no-filter.bed
+cmd=("paste <(cut -f1-4 $output_dir\${LNS[0]}.bed)" \${cmd[@]})
+eval "\${cmd[@]}" > ${output_dir}/merged.counts.no-filter.bed
 __SCRIPT__
 
 JOB1=$(sbatch --export=ALL \
-	--job-name=allelic.reads.merge \
-	--depend=afterok:${JOB0##* }  \
-	${output_dir}/slurm.bam_count_tags_merge)
+    --job-name=allelic.reads.merge \
+    --depend=afterok:${JOB0##* }  \
+    ${output_dir}/slurm.bam_count_tags_merge)
 echo $JOB1
+
+exit 0
