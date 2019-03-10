@@ -70,7 +70,7 @@ cmd=()
 for ln in \${LNS[@]}; do
     cmd=(\${cmd[@]} "<(cut -f5 $output_dir"/"\${ln}.bed)")
 done;
-cmd=("paste <(cut -f1-4 $output_dir\${LNS[0]}.bed)" \${cmd[@]})
+cmd=("paste <(cut -f1-4 $output_dir"/"\${LNS[0]}.bed)" \${cmd[@]})
 eval "\${cmd[@]}" > ${output_dir}/merged.counts.no-filter.bed
 __SCRIPT__
 
