@@ -7,6 +7,7 @@ GZVCF_FILE=../results.tcells/$iter/filtered.hwe.0.01.vcf.gz
 output_dir=../results.individual-counts/$iter
 mkdir -p $output_dir/logs
 cp ../../scripts/count_tags.py $output_dir
+cp ../../scripts/count_tags.py .
 
 ./counts_tags_by_individual.sh $FASTA_CHROM_FILE $FASTA_FILE $GZVCF_FILE $output_dir
 
