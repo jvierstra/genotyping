@@ -68,9 +68,9 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_merge
 LNS=(\`cat ${output_dir}/inputs.txt | cut -f2\`)
 cmd=()
 for ln in \${LNS[@]}; do
-    cmd=(\${cmd[@]} "<(cut -f5 $output_dir"/"\${ln}.bed)")
+    cmd=(\${cmd[@]} "<(cut -f4,6,7 $output_dir"/"\${ln}.bed | tr '\t' ':')")
 done;
-cmd=("paste <(cut -f1-4 $output_dir"/"\${LNS[0]}.bed)" \${cmd[@]})
+cmd=("paste <(cut -f1-3 $output_dir"/"\${LNS[0]}.bed)" \${cmd[@]})
 eval "\${cmd[@]}" > ${output_dir}/merged.counts.no-filter.bed
 __SCRIPT__
 
