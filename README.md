@@ -11,6 +11,7 @@ Call genotypes directly from epigenomics datasets
 7) call_genotypes.sh            : bed-matrix stats for het/homozygous information over all individuals
 
 Step 3 can often be skipped if tissue culture history is known (edits/clones should be grouped together as one individual)
+
 Step 7 has ref/alt allele information (col4), often taken from overlapping TOPMED info.  Alternative methods could be used.
   and scripts/create-refalt-alleles.tcsh has some comments about that.
 
