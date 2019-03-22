@@ -11,7 +11,7 @@ FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
 
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype
 
-rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
+rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs ${output_dir}/samples
 
 # Make chunks
 cat ${FASTA_CHROM_FILE} \
@@ -27,6 +27,14 @@ njobs=$(wc -l < ${output_dir}/inputs.txt)
 # Make BAM file list
 #cut -f3  /home/jvierstra/proj/ftd.updated/hg38.DGF.ver4.params.txt > ${output_dir}/filelist.txt
 ls /net/seq/data/projects/genotyping/results.dgf-samples.merge2/*.bam > ${output_dir}/filelist.txt
+
+
+#params:
+min_Q=500
+min_GQ=50
+min_DP=12
+min_AD=4
+hwe_cutoff=0.01
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_chunk
 #!/bin/bash
@@ -55,7 +63,7 @@ bcftools mpileup -r \${region} \
 	-a FORMAT/DP,FORMAT/AD \
 | bcftools call -f GQ -cv -Ov \
 | vcftools --stdout \
-	--minQ 500 --minGQ 50 --minDP q --max-alleles 2 \
+	--minQ ${min_Q} --minGQ ${min_GQ} --minDP ${min_DP} --max-alleles 2 --hwe ${hwe_cutoff}\
 	--recode --recode-INFO-all --vcf - \
 | bgzip -c > ${output_dir}/\${region}.filtered.vcf.gz
 
@@ -83,10 +91,11 @@ cat inputs.txt | awk -v dir="${output_dir}" '{ print dir"/"\$1".filtered.vcf.gz"
 bcftools concat -f \${TMPDIR}/mergelist.txt -Oz -o ${output_dir}/filtered.all.vcf.gz
 tabix -p vcf ${output_dir}/filtered.all.vcf.gz
 
-vcftools --gzvcf ${output_dir}/filtered.all.vcf.gz --hwe 0.01 --stdout --recode --recode-INFO-all | bgzip -@2 -c > ${output_dir}/filtered.hwe.0.01.vcf.gz
-tabix -p vcf ${output_dir}/filtered.hwe.0.01.vcf.gz
+python2 ${script_dir}/filter_by_sample.py \
+	--min_dp ${min_DP}  --min_ad ${min_AD} --min_gq ${min_GQ} \
+	${output_dir}/filtered.all.vcf.gz ${output_dir}/samples \
+> ${output_dir}/filtered.all.bed
 
-#bcftools query -f '%CHROM\t%POS0\t%POS\t%REF/%ALT\n' filtered.hwe.0.01.vcf.gz > filtered.hwe.0.01.bed
 __SCRIPT__
 
 JOB0=$(sbatch --export=ALL \

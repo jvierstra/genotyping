@@ -1,4 +1,6 @@
-#!/bin/env
+#!/bin/bash
+
+module load bcftools/1.7
 
 FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
 FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
@@ -34,7 +36,7 @@ python /home/jvierstra/proj/code/genotyping/scripts/count_tags.py ${GZVCF_FILE} 
 __SCRIPT__
 
 
-JOB0=$(sbatch --export=ALL \
+JOB0=$(sbatch --export=ALL --parsable\
 	--job-name=allelic.reads \
 	--array=1-${njobs} \
 	${output_dir}/slurm.bam_count_tags_chunk)
@@ -57,8 +59,8 @@ cmd="paste <(cut -f1-4 \${LNS[0]}.bed) $cmd"
 eval \$cmd > ${output_dir}/merged.counts.no-filter.bed
 __SCRIPT__
 
-JOB1=$(sbatch --export=ALL \
+JOB1=$(sbatch --export=ALL --parsable\
 	--job-name=allelic.reads.merge \
-	--depend=afterok:${JOB0##* }  \
+	--depend=afterok:${JOB0}  \
 	${output_dir}/slurm.bam_count_tags_merge)
 echo $JOB1

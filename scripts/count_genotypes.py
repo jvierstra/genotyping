@@ -3,6 +3,8 @@
 import sys
 import logging
 
+from argparse import ArgumentParser
+
 import numpy as np
 from scipy.stats import binom_test
 
@@ -12,10 +14,10 @@ def parse_options(args):
 
     parser = ArgumentParser(description = "Aggregate summary of genotype read depth and allelic ratios")
 
-	parser.add_argument("--min_het_reads", metavar = "min_het_reads", type = int, default=50, 
+    parser.add_argument("--min_het_reads", metavar = "min_het_reads", type = int, default=50, 
                         help = "Mininum number of HETEROZYGOUS reads to test for imbalance")
 
-	parser.add_argument("--min_het_samples", metavar = "min_het_samples", type = int, default=1, 
+    parser.add_argument("--min_het_samples", metavar = "min_het_samples", type = int, default=1, 
                         help = "Mininum number of HETEROZYGOUS samples to test for imbalance")
 
     parser.add_argument("--p", metavar = "p", type = float, default=0.5, 

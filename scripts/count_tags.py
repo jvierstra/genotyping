@@ -7,24 +7,27 @@ import pysam
 import sys
 import logging
 
+from argparse import ArgumentParser
+
+
 import numpy as np
 
 logging.basicConfig(stream = sys.stdout, level = 20)
 
 def parse_options(args):
 
-    parser = ArgumentParser(description = "Count tags by allele")
+	parser = ArgumentParser(description = "Count tags by allele")
 
-    parser.add_argument("vcf_file", metavar = "vcf_file", type = str,
-                        help = "Path to GZVCF-format tag sequence file")
+	parser.add_argument("vcf_file", metavar = "vcf_file", type = str,
+						help = "Path to GZVCF-format tag sequence file")
 
-    parser.add_argument("bam_file", metavar = "bam_file", type = str, 
-                        help = "Path to BAM-format tag sequence file")
+	parser.add_argument("bam_file", metavar = "bam_file", type = str, 
+						help = "Path to BAM-format tag sequence file")
 
-    parser.add_argument("sample", metavar = "sample", type = str, 
-                        help = "Sample name (must be in the VFC file)")
+	parser.add_argument("sample", metavar = "sample", type = str, 
+						help = "Sample name (must be in the VFC file)")
 
-    return parser.parse_args(args)
+	return parser.parse_args(args)
 
 class GenotypeError(Exception):
 	pass
@@ -47,7 +50,7 @@ class ReadError(Exception):
 
 def main(argv = sys.argv[1:]):
 
-    args = parse_options(argv)
+	args = parse_options(argv)
 
 	vcf = pysam.VariantFile(args.vcf_file, "rb")
 	sam = pysam.AlignmentFile(args.bam_file, "rb" )
@@ -70,7 +73,7 @@ def main(argv = sys.argv[1:]):
 		try:
 
 			genotype = rec.samples[args.sample].alleles
-			ff = dict((x, y) for x, y in rec.samples[individual].items())
+			#ff = dict((x, y) for x, y in rec.samples[args.sample].items())
 
 			# Check whether genotyping is of high quality and there is enough reads to support it
 
