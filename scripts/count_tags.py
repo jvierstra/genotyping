@@ -25,7 +25,7 @@ def parse_options(args):
 						help = "Path to BAM-format tag sequence file")
 
 	parser.add_argument("sample", metavar = "sample", type = str, 
-						help = "Sample name (must be in the VFC file)")
+						help = "Sample name (must be in the VCF file)")
 
 	return parser.parse_args(args)
 

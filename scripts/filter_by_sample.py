@@ -10,7 +10,7 @@ import pysam
 
 def parse_options(args):
 
-	parser = ArgumentParser(description = "Perform per sample filtering of a VCF file")
+	parser = ArgumentParser(description = "Perform per sample filtering of a VCF file to get heterozygous sites")
 
 	parser.add_argument("vcf_file", metavar = "vcf_file", type = str,
 						help = "Path to VCF-format genotyping file. Format fields must include GT,GQ,PL,AD,DP tags.")
