@@ -14,7 +14,8 @@ Step 3 can often be skipped if tissue culture history is known (edits/clones sho
 
 Step 7 has ref/alt allele information (col4), often taken from overlapping TOPMED info.  Alternative methods could be used.
   and scripts/create-refalt-alleles.tcsh has some comments about that.
-  (In hindsight, this is not necessary (TOPMED) because we use the same reference genome.  To be updated.)
+  (In hindsight, this is not necessary (TOPMED) because we use the same reference genome.  To be updated later.  The current
+   approach covers in excess of 93% of the significant variants called.)
 
 The pipeline/example/ dir shows caller script examples.
 
