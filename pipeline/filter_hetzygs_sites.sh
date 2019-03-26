@@ -43,6 +43,6 @@ python2 /home/jvierstra/proj/code/genotyping/scripts/recode_vcf.py ${output_dir}
 vcftools --stdout --recode --recode-INFO-all --gzvcf ${output_dir}/filtered.all.hets-pass.recoded.vcf.gz | bgzip -c > ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz
 tabix -p vcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz
 
-vcftools --out  ${output_dir}/filtered.all.hets-pass.recoded-final --gzvcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz --relatedness --het --depth --TsTv-by-count --TsTv-by-qual
+#vcftools --out  ${output_dir}/filtered.all.hets-pass.recoded-final --gzvcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz --relatedness --het --depth --TsTv-by-count --TsTv-by-qual
 
-zcat filtered.all.hets-pass.recoded-final.vcf.gz | perl -ne 'print "$1\n" if /AF1=([^,;]+)/'
+#zcat filtered.all.hets-pass.recoded-final.vcf.gz | perl -ne 'print "$1\n" if /AF1=([^,;]+)/'
