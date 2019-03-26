@@ -56,11 +56,11 @@ def main(argv = sys.argv[1:]):
 
 			# if no gt called omit
 			gt=info["GT"]
-			if not any(gt):
+			if gt[0]==None and gt[1]==None:
 				continue
-			
-			ref=gtmap[gt[0]]
-			alt=gtmap[gt[1]]
+
+			a0=gt[0]#gtmap[gt[0]]
+			a1=gt[1]#gtmap[gt[1]]
 
 			#filter on total genotype depth
 			dp=info["DP"]
@@ -69,7 +69,7 @@ def main(argv = sys.argv[1:]):
 
 			# filter on allele depth also (only for hets)
 			ad=info["AD"]
-			if ref!=alt and (ad[0]<args.min_ad or ad[1]<args.min_ad):
+			if a0!=a1 and (ad[0]<args.min_ad or ad[1]<args.min_ad):
 				continue
 
 			# genotype quality
@@ -77,10 +77,10 @@ def main(argv = sys.argv[1:]):
 			if gq<args.min_gq:
 				continue
 
-			outline="\t".join(map(str, [var.contig, var.start, var.start+1, ref, alt, gq, dp, str(ad[0]) + ":" + str(ad[1])]))
+			outline="\t".join(map(str, [var.contig, var.start, var.start+1, gtmap[a0], gtmap[a1], gq, dp, str(ad[0]) + ":" + str(ad[1])]))
 			sample_outfiles[sample].write(outline + "\n")
 
-			if ref==alt:
+			if a0==a1:
 				n_homs+=1
 			else:
 				n_hets+=1

@@ -4,7 +4,7 @@ module load bcftools/1.7
 
 FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
 FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
-GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.hwe.0.01.vcf.gz
+GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.all.hets-pass.recoded-final.vcf.gz
 
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/individual.counts
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
@@ -32,7 +32,7 @@ mkdir -p \${TMPDIR}
 params=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
 prefix=\`basename \${params[0]} | cut -d"." -f1,2\`
 
-python /home/jvierstra/proj/code/genotyping/scripts/count_tags.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
+python /home/jvierstra/proj/code/genotyping/scripts/count_tags_bed.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
 __SCRIPT__
 
 
@@ -59,8 +59,8 @@ cmd="paste <(cut -f1-4 \${LNS[0]}.bed) $cmd"
 eval \$cmd > ${output_dir}/merged.counts.no-filter.bed
 __SCRIPT__
 
-JOB1=$(sbatch --export=ALL --parsable\
-	--job-name=allelic.reads.merge \
-	--depend=afterok:${JOB0}  \
-	${output_dir}/slurm.bam_count_tags_merge)
-echo $JOB1
+#JOB1=$(sbatch --export=ALL --parsable\
+#	--job-name=allelic.reads.merge \
+#	--depend=afterok:${JOB0}  \
+#	${output_dir}/slurm.bam_count_tags_merge)
+#echo $JOB1

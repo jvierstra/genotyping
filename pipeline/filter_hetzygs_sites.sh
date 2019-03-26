@@ -4,7 +4,7 @@ output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype
 
 
 #gather all sites with at least 1 hetzygs indvidual and >30 reads total 
-bedops -u ${output_dir}/samples/individual.*.bed | awk '$4!=$5' \
+bedops --ec -u ${output_dir}/samples/individual.*.bed | awk '$4!=$5' \
 | awk -v OFS="\t" ' \
 	function print_row() { print last_chrom, last_start, last_start+1, ".", dp, n_hets; } \
 	{ \
@@ -44,3 +44,5 @@ vcftools --stdout --recode --recode-INFO-all --gzvcf ${output_dir}/filtered.all.
 tabix -p vcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz
 
 vcftools --out  ${output_dir}/filtered.all.hets-pass.recoded-final --gzvcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz --relatedness --het --depth --TsTv-by-count --TsTv-by-qual
+
+zcat filtered.all.hets-pass.recoded-final.vcf.gz | perl -ne 'print "$1\n" if /AF1=([^,;]+)/'
