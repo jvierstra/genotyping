@@ -9,6 +9,6 @@ mkdir -p $output_dir/logs
 cp ../../scripts/count_tags.py $output_dir
 cp ../../scripts/count_tags.py .
 
-./counts_tags_by_individual.sh $FASTA_CHROM_FILE $FASTA_FILE $GZVCF_FILE $output_dir
+../counts_tags_by_individual.sh $FASTA_CHROM_FILE $FASTA_FILE $GZVCF_FILE $output_dir
 
 exit 0
