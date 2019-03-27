@@ -10,7 +10,8 @@ Call genotypes directly from epigenomics datasets
 6) counts_tags_by_individual.sh : creates a bed-matrix precursor for the next step
 7) count_genotypes.caller.sh    : bed-matrix stats for het/homozygous information over all individuals
 
-Step 3 can often be skipped if tissue culture history is known (edits/clones should be grouped together as one individual)
+Step 3 can often be skipped if tissue culture history is known (edits/clones should be grouped together as one individual).
+If that information is available, you can actually skip steps 1-3 entirely.
 
 Step 7 has ref/alt allele information (col4), often taken from overlapping TOPMED info.  Alternative methods could be used.
   and scripts/create-refalt-alleles.tcsh has some comments about that.
