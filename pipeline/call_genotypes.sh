@@ -11,6 +11,18 @@ FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
 
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype
 
+# Make BAM file list
+#cut -f3  /home/jvierstra/proj/ftd.updated/hg38.DGF.ver4.params.txt > ${output_dir}/filelist.txt
+ls /net/seq/data/projects/genotyping/results.dgf-samples.merge2/*.bam > ${output_dir}/filelist.txt
+
+#params:
+min_Q=500
+min_GQ=50
+min_DP=12
+min_AD=4
+hwe_cutoff=0.01
+
+###DO NOT EDIT BELOW
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs ${output_dir}/samples
 
 # Make chunks
@@ -22,19 +34,6 @@ cat ${FASTA_CHROM_FILE} \
 
 njobs=$(wc -l < ${output_dir}/inputs.txt)
 
-
-
-# Make BAM file list
-#cut -f3  /home/jvierstra/proj/ftd.updated/hg38.DGF.ver4.params.txt > ${output_dir}/filelist.txt
-ls /net/seq/data/projects/genotyping/results.dgf-samples.merge2/*.bam > ${output_dir}/filelist.txt
-
-
-#params:
-min_Q=500
-min_GQ=50
-min_DP=12
-min_AD=4
-hwe_cutoff=0.01
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_chunk
 #!/bin/bash
@@ -80,6 +79,8 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.bam_call_genotypes_merge
 #SBATCH --cpus-per-task=2
 #SBATCH --partition=queue0
 
+set -euxo pipefail
+
 TMPDIR=/tmp/\$SLURM_JOB_ID
 mkdir -p \${TMPDIR}
 
@@ -88,7 +89,10 @@ module load vcftools/0.1.14
 module load htslib/1.7
 
 cat inputs.txt | awk -v dir="${output_dir}" '{ print dir"/"\$1".filtered.vcf.gz"; }' > \${TMPDIR}/mergelist.txt
-bcftools concat -f \${TMPDIR}/mergelist.txt -Oz -o ${output_dir}/filtered.all.vcf.gz
+
+bcftools concat -f \${TMPDIR}/mergelist.txt -Ou \
+| bcftools annotate -Oz -a /home/jvierstra/data/dbSNP/v151/All_20180418.fixed-chrom.vcf.gz -c ID --threads 16 \
+> ${output_dir}/filtered.all.vcf.gz
 tabix -p vcf ${output_dir}/filtered.all.vcf.gz
 
 python2 ${script_dir}/filter_by_sample.py \

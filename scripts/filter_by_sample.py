@@ -91,6 +91,7 @@ def main(argv = sys.argv[1:]):
 	for sample, filehandle in sample_outfiles.items():
 		filehandle.close()
 
+	return 0
 
     
 if __name__ == "__main__":

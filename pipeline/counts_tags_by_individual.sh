@@ -1,20 +1,17 @@
 #!/bin/bash
 
 module load bcftools/1.7
-
-FASTA_CHROM_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.chrom_sizes.bed
-FASTA_FILE=/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa
-GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.all.hets-pass.recoded-final.vcf.gz
-
+GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.all.hets-pass.recoded-final.dbSNP.vcf.gz
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/individual.counts
+
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
 
 #Get samples
 bcftools query -l ${GZVCF_FILE} > /tmp/samples.txt
 cat /tmp/samples.txt > ${output_dir}/inputs.txt
 
-njobs=$(wc -l < ${output_dir}/inputs.txt)
-echo "njobs: $njobs"
+bcftools view -h ${GZVCF_FILE} | perl -ne 'print "$1\n" if /contig=<ID=([^,;]+),/' \
+> ${output_dir}/chroms.txt
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_chunk
 #!/bin/bash
@@ -32,35 +29,62 @@ mkdir -p \${TMPDIR}
 params=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
 prefix=\`basename \${params[0]} | cut -d"." -f1,2\`
 
-python /home/jvierstra/proj/code/genotyping/scripts/count_tags_bed.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
+python2 /home/jvierstra/proj/code/genotyping/scripts/count_tags_bed.py ${GZVCF_FILE} \${params[0]} \${params[1]} > ${output_dir}/\${prefix}.bed
 __SCRIPT__
 
 
-JOB0=$(sbatch --export=ALL --parsable\
+cat <<__SCRIPT__ > ${output_dir}/slurm.recode_vcf
+#!/bin/bash
+#
+#SBATCH --output=${output_dir}/logs/%A.%a.out
+#SBATCH --mem=4G
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=queue0
+
+set -e -o pipefail
+
+TMPDIR=/tmp/\$SLURM_JOB_ID
+mkdir -p \${TMPDIR}
+
+chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
+
+python2 /home/jvierstra/proj/code/genotyping/scripts/recode_vcf_with_tags.py --chrom \${chrom} ${GZVCF_FILE} ${output_dir}/ ${output_dir}/\${chrom}.vcf.gz
+
+__SCRIPT__
+
+cat <<__SCRIPT__ > ${output_dir}/slurm.merge
+#!/bin/bash
+#
+#SBATCH --output=${output_dir}/logs/%J.out
+#SBATCH --mem=16G
+#SBATCH --cpus-per-task=2
+#SBATCH --partition=queue0
+ 
+bcftools concat -Oz ${output_dir}/chr*.vcf.gz > ${output_dir}/merged.all.vcf.gz
+__SCRIPT__
+
+njobs=$(wc -l < ${output_dir}/inputs.txt)
+echo "Number of datasets: $njobs"
+JOB0=$(sbatch --export=ALL --parsable \
 	--job-name=allelic.reads \
 	--array=1-${njobs} \
 	${output_dir}/slurm.bam_count_tags_chunk)
 echo $JOB0
 
-cat <<__SCRIPT__ > ${output_dir}/slurm.bam_count_tags_merge
-#!/bin/bash
-#
-#SBATCH --output=${output_dir}/logs/%J.out
-#SBATCH --mem=4G
-#SBATCH --cpus-per-task=1
-#SBATCH --partition=queue0
 
-cmd=""
-LNS=(\`cat ${output_dir}/inputs.txt | xargs -L1 'basename' | cut -f1,2 -d"."\`)
-for ln in \${LNS[@]}; do 
-	cmd="\$cmd <(cut -f5 \${ln}.bed)"
-done;
-cmd="paste <(cut -f1-4 \${LNS[0]}.bed) $cmd"
-eval \$cmd > ${output_dir}/merged.counts.no-filter.bed
-__SCRIPT__
+njobs=$(wc -l < ${output_dir}/chroms.txt)
+echo "Number of chromosomes: $njobs"
+JOB1=$(sbatch --export=ALL --parsable \
+	--job-name=allelic.reads.recode_vcf \
+	--depend=afterok:${JOB0} \
+	--array=1-${njobs} \
+	${output_dir}/slurm.recode_vcf)
+echo $JOB1
 
-#JOB1=$(sbatch --export=ALL --parsable\
-#	--job-name=allelic.reads.merge \
-#	--depend=afterok:${JOB0}  \
-#	${output_dir}/slurm.bam_count_tags_merge)
-#echo $JOB1
+
+JOB2=$(sbatch --export=ALL --parsable \
+	--job-name=allelic.reads.merge \
+	--depend=afterok:${JOB1} \
+	${output_dir}/slurm.merge)
+echo $JOB1
+
