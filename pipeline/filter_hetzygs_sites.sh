@@ -3,6 +3,8 @@
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype
 
 
+
+
 #gather all sites with at least 1 hetzygs indvidual and >30 reads total 
 bedops --ec -u ${output_dir}/samples/individual.*.bed | awk '$4!=$5' \
 | awk -v OFS="\t" ' \

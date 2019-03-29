@@ -61,6 +61,10 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.merge
 #SBATCH --partition=queue0
  
 bcftools concat -Oz ${output_dir}/chr*.vcf.gz > ${output_dir}/merged.all.vcf.gz
+
+bcftools query -i 'GT="het"' -f '%CHROM\t%POS0\t%ID\t%REF\t%ALT\t[%ARD{0},]\t[%ARD{1},]\n' ${output_dir}/merged.all.vcf.gz \
+| python2 /home/jvierstra/proj/code/genotyping/scripts/compute_ai.py > ${output_dir}/merged.all.ai.bed
+
 __SCRIPT__
 
 njobs=$(wc -l < ${output_dir}/inputs.txt)
