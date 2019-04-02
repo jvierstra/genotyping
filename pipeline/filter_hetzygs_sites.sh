@@ -48,3 +48,9 @@ tabix -p vcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz
 #vcftools --out  ${output_dir}/filtered.all.hets-pass.recoded-final --gzvcf ${output_dir}/filtered.all.hets-pass.recoded-final.vcf.gz --relatedness --het --depth --TsTv-by-count --TsTv-by-qual
 
 #zcat filtered.all.hets-pass.recoded-final.vcf.gz | perl -ne 'print "$1\n" if /AF1=([^,;]+)/'
+
+vcftools --out filtered.all.hets-pass.recoded-final-ard --gzvcf filtered.all.hets-pass.recoded-final-ard.vcf.gz --het &
+vcftools --out filtered.all.hets-pass.recoded-final-ard --gzvcf filtered.all.hets-pass.recoded-final-ard.vcf.gz --depth &
+vcftools --out filtered.all.hets-pass.recoded-final-ard --gzvcf filtered.all.hets-pass.recoded-final-ard.vcf.gz --TsTv-by-count &
+vcftools --out filtered.all.hets-pass.recoded-final-ard --gzvcf filtered.all.hets-pass.recoded-final-ard.vcf.gz --TsTv-by-qual &
+vcftools --out filtered.all.hets-pass.recoded-final-ard --gzvcf filtered.all.hets-pass.recoded-final-ard.vcf.gz --TsTv-summary &

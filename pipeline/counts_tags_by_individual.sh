@@ -1,10 +1,12 @@
 #!/bin/bash
 
-module load bcftools/1.7
 GZVCF_FILE=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/filtered.all.hets-pass.recoded-final.dbSNP.vcf.gz
 output_dir=/net/seq/data/projects/genotyping/results.dgf-samples.merge2.genotype/individual.counts
 
 rm -rf ${output_dir}/logs && mkdir -p ${output_dir}/logs
+
+
+module load bcftools/1.7
 
 #Get samples
 bcftools query -l ${GZVCF_FILE} > /tmp/samples.txt
@@ -29,7 +31,7 @@ mkdir -p \${TMPDIR}
 params=(\`cat ${output_dir}/inputs.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
 prefix=\`basename \${params[0]} | cut -d"." -f1,2\`
 
-python2 /home/jvierstra/proj/code/genotyping/scripts/count_tags_bed.py ${GZVCF_FILE} \${params[0]} \${params[1]} > ${output_dir}/\${prefix}.bed
+python2 /home/jvierstra/proj/code/genotyping/scripts/count_tags_bed.py ${GZVCF_FILE} \${params[0]} \${params[0]} > ${output_dir}/\${prefix}.bed
 __SCRIPT__
 
 
@@ -62,9 +64,10 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.merge
  
 bcftools concat -Oz ${output_dir}/chr*.vcf.gz > ${output_dir}/merged.all.vcf.gz
 
-bcftools query -i 'GT="het"' -f '%CHROM\t%POS0\t%ID\t%REF\t%ALT\t[%ARD{0},]\t[%ARD{1},]\n' ${output_dir}/merged.all.vcf.gz \
-| python2 /home/jvierstra/proj/code/genotyping/scripts/compute_ai.py > ${output_dir}/merged.all.ai.bed
+#bcftools query -i 'GT="het"' -f '%CHROM\t%POS0\t%ID\t%REF\t%ALT\t[%ARD{0},]\t[%ARD{1},]\n' ${output_dir}/merged.all.vcf.gz \
+#| python2 /home/jvierstra/proj/code/genotyping/scripts/compute_ai.py > ${output_dir}/merged.all.ai.bed
 
+python /home/jvierstra/proj/code/genotyping/scripts/count_genotypes.py ${output_dir}/merged.all.vcf.gz > ${output_dir}/merged.all.ai.bed
 __SCRIPT__
 
 njobs=$(wc -l < ${output_dir}/inputs.txt)

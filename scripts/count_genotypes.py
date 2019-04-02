@@ -1,97 +1,73 @@
-#!/bin/env python
-
 import sys
-import logging
-
-from argparse import ArgumentParser
-
+import pysam
 import numpy as np
 from scipy.stats import binom_test
 
-logging.basicConfig(stream = sys.stdout, level = 20)
+vcf_file=pysam.VariantFile(sys.argv[1])
 
-def parse_options(args):
+for var in vcf_file.fetch():
 
-    parser = ArgumentParser(description = "Aggregate summary of genotype read depth and allelic ratios")
+	n_total=0
+	n_hom_ref=0
+	n_hom_alt=0
+	n_het=0
 
-    parser.add_argument("--min_het_reads", metavar = "min_het_reads", type = int, default=50, 
-                        help = "Mininum number of HETEROZYGOUS reads to test for imbalance")
+	hom_ref=np.zeros(2, dtype=int)
+	hom_alt=np.zeros(2, dtype=int)
+	het=np.zeros(2, dtype=int)
 
-    parser.add_argument("--min_het_samples", metavar = "min_het_samples", type = int, default=1, 
-                        help = "Mininum number of HETEROZYGOUS samples to test for imbalance")
-
-    parser.add_argument("--p", metavar = "p", type = float, default=0.5, 
-                        help = "Binomial paramter p used in imbalance test (default: %(default)s)")
-
-    return parser.parse_args(args)
+	for sample, info in var.samples.items():
+		if not all(info.alleles):
+			continue
 
 
-def format_counts(a):
-	return ':'.join(map(str, a))
+		a0=info.alleles[0]
+		a1=info.alleles[1]
 
-def main(argv = sys.argv[1:]):
-
-	args = parse_options(argv)
-
-	for line in sys.stdin:
-
-		fields = line.strip().split('\t')
-
-		chrom = fields[0]
-		start = int(fields[1])
-		end = int(fields[2])
-
-		(ref, alt) = fields[3].split("/")
-
-		n_homozygous_ref = 0
-		n_homozygous_alt = 0
-		n_heterozygous = 0
-
-		homozygous_ref = np.zeros(2, dtype = int)
-		homozygous_alt = np.zeros(2, dtype = int)
-		heterozygous = np.zeros(2, dtype = int)
-
-		total = 0
-
-		for ds in fields[4:]:
-
-			(genotype, nr, na) = ds.split(":")
-			counts = np.array([nr, na], dtype = np.int)
-
-			if genotype == "./.":
-				continue
-
-			(a0, a1) = genotype.split("/")
-
-			if a0 == a1:
-				if a0 == ref:
-					n_homozygous_ref += 1
-					homozygous_ref += counts
-
-				elif a0 == alt:
-					n_homozygous_alt += 1
-					homozygous_alt += counts
-			else:
-				n_heterozygous += 1
-				heterozygous += counts
-
-		total = n_homozygous_ref + n_homozygous_alt + n_heterozygous
-
-		try:
-			imbalance = float(heterozygous[0]) / float(heterozygous[0]+heterozygous[1]) 
-		except ZeroDivisionError:
-			imbalance = np.nan
-
-		if (heterozygous[0]+heterozygous[1] >= args.min_het_reads) and n_heterozygous>args.min_het_samples:
-			p = binom_test(heterozygous[:2], p = args.p)
+		if a0!=a1:
+			n_het+=1
+			het+=info["ARD"]
 		else:
-			p = np.nan
+			if a0==var.ref:
+				n_hom_ref+=1
+				hom_ref+=info["ARD"]
+			else:
+				n_hom_alt+=1
+				hom_alt+=info["ARD"]
 
-		print "\t".join(map(str, [chrom, start, end, "%s/%s" % (ref, alt) , total, 
-			n_homozygous_ref, format_counts(homozygous_ref), 
-			n_homozygous_alt, format_counts(homozygous_alt), 
-			n_heterozygous, format_counts(heterozygous), imbalance, p]))
+		n_total+=1
 
-if __name__ == "__main__":
-    sys.exit(main())
 
+
+	try:
+		r=float(het[0])/float(np.sum(het))
+	except ZeroDivisionError:
+		r=np.nan
+
+
+	if n_het<2 or np.sum(het)<50:
+		p=np.nan
+	else:
+		p = binom_test(het, p=0.5)
+
+	
+	print '\t'.join(
+		map(str,
+			[
+				var.contig, 
+				var.start, 
+				var.start+1, 
+				var.id, 
+				var.ref, 
+				var.alts[0], 
+				n_total, 
+				n_hom_ref, 
+				':'.join(map(str, hom_ref)), 
+				n_hom_alt, 
+				':'.join(map(str, hom_alt)), 
+				n_het, 
+				':'.join(map(str, het)),
+				r,
+				p
+			])
+		)
