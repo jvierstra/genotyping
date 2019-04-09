@@ -2,27 +2,22 @@
 # author : sjn
 # date : Apr.2019
 
-# download and compile phaser from https://github.com/secastel/phaser.git
-# download and gunzip hg38 files required by phaser
-#  https://www.dropbox.com/s/1zapu5n4aeyi1g6/hg38_hla.chr.bed.gz?dl=0
-#  https://www.dropbox.com/s/9cn9477bcutvuc7/hg38_haplo_count_blacklist.chr.bed.gz?dl=0
-
 set dstamp = 2019-04-04
-set script = $HOME/Github/phaser/phaser/phaser.py
+set script = ~sjn/Github/phaser/phaser/phaser.py
 set bamd = ../data/$dstamp/bams
-set donorsmatched = ../data/$dstamp/prodQC/donors.matched.simple # dnase-rnase matches
+set donorsmatched = ../data/$dstamp/prodQC/donors.matched.simple # dnase-rnaseq matches
 set haplos = ../data/hg38_hla.chr.bed
 set haplo_blacklist = ../data/hg38_haplo_count_blacklist.chr.bed
 set vcfd = ../results/$dstamp/dnaseI/output/phasing
 set vcfds = (`find $vcfd -maxdepth 1 -mindepth 1 -type d`)
-set baseoutd = ../results/$dstamp/rnase/output/imputed
+set baseoutd = ../results/$dstamp/rnaseq/output/imputed
 
 source /net/module/Modules/default/tcsh
 
 module add bcftools/1.7
 module add anaconda/2.1.0-dev
 
-set envnm = conda-env-impute-rnase-t3
+set envnm = conda-env-impute-rnaseq-t3
 set activator = `which conda`
 set activator = $activator:h/activate
 
@@ -49,15 +44,15 @@ foreach d ($vcfds)
     foreach sample (`bcftools query -l $chr`)
       set samplenm = `echo $sample | tr '/' '.' | cut -f2- -d'.'`
       set dnasenm = $sample:t:r
-      set rnasenm = `awk -v d=$dnasenm '$3 == d { print $4 }' $donorsmatched`
-      if ( $rnasenm == "" ) then
+      set rnaseqnm = `awk -v d=$dnasenm '$3 == d { print $4 }' $donorsmatched`
+      if ( $rnaseqnm == "" ) then
         printf "No-match %s\n" $dnasenm
         continue
       endif
 
-      set bam = (`find -L $bamd/ -mindepth 1 -maxdepth 1 -type f -name "*-$rnasenm.bam"`)
+      set bam = (`find -L $bamd/ -mindepth 1 -maxdepth 1 -type f -name "*-$rnaseqnm.bam"`)
       if ( $#bam != 1 ) then
-        printf "Problem with %s\n" $rnasenm
+        printf "Problem with %s\n" $rnaseqnm
         exit -1
       endif
 

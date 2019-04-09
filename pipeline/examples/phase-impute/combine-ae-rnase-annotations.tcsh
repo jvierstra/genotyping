@@ -3,7 +3,7 @@
 # date : Apr.2019
 
 set dstamp = 2019-04-04
-set baseind = ../results/$dstamp/rnase-ae/output/expression
+set baseind = ../results/$dstamp/rnaseq-ae/output/expression
 
 foreach vcfd (`find $baseind/ -maxdepth 1 -mindepth 1 -type d`)
   set fs = ()
