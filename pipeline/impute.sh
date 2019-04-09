@@ -1,11 +1,24 @@
-#!/bin/bash
+#!/bin/bash -x
 
-vcfgzfile=/net/seq/data/projects/altius-100-donors/archives/2019-03-29/output/filtered.all.vcf.gz
-output_dir="/net/seq/data/projects/altius-100-donors/archives/2019-03-29/output/imputed"
+usage () {
+  echo -e "Usage: $0 <sigvars-vcf.gz> <output-dir>" >&2
+  exit 2
+}
+
+if [[ $# != 2 ]]; then
+   usage
+fi
+
+source /net/module/Modules/default/bash
+module add bcftools/1.7
+
+vcfgzfile=$1
+output_dir=$2
 
 mkdir -p ${output_dir}/logs
 
-bcftools view -h ${vcfgzfile} | grep "contig" | perl -ne 'print "$1\n" if /contig=<ID=(chr[0-9XY]+)/' > ${output_dir}/chroms.txt
+bcftools view -h ${vcfgzfile} | grep "contig" | awk '$1 !~ /_/' | perl -ne 'print "$1\n" if /contig=<ID=(chr[0-9XY]+)/' > ${output_dir}/chroms.txt
+awk '{ print substr($1, 4), $1; }' ${output_dir}/chroms.txt > ${output_dir}/chroms.rename.txt
 
 
 #bcftools view -h ALL.chr1_GRCh38.genotypes.20170504.bcf | grep "contig" | perl -ne 'print "$1\n" if /length=([0-9]+)/' > /tmp/chrom.lens.txt
@@ -18,7 +31,7 @@ bcftools view -h ${vcfgzfile} | grep "contig" | perl -ne 'print "$1\n" if /conti
 
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.chunk
-#!/bin/bash
+#!/bin/bash -x
 #
 #SBATCH --output=${output_dir}/logs/%A.%a.out
 #SBATCH --mem=32G
@@ -27,12 +40,17 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.chunk
 
 set -e -o pipefail
 
+source /net/module/Modules/default/bash
+module add bcftools/1.7
+module add htslib/1.7
+module add vcftools
+
 TMPDIR=/tmp/\$SLURM_JOB_ID
 mkdir -p \${TMPDIR}
 
 chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
 
-## prepahseing
+## prephasing
 /home/jvierstra/.local/src/Eagle_v2.4.1/eagle \
 	--numThreads 16 \
 	--outPrefix \${TMPDIR}/prephased \
@@ -47,9 +65,9 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 (bcftools view --no-version -h \${TMPDIR}/prephased.bcf \
  | sed 's/^##contig=<ID=chr/##contig=<ID=/'; \
 	bcftools view --no-version -H -c 2 \${TMPDIR}/prephased.bcf | sed 's/^chr//') \
-| bcftools view -Ov > \${TMPDIR}/prephased.chrom-fix.vcf
+ | bcftools view -Ov > \${TMPDIR}/prephased.chrom-fix.vcf
 
-
+# produces unsorted vcf file (tabix complains) without 'chr' in contig names
 /home/jvierstra/.local/src/Minimac3/bin/Minimac3-omp \
 	--refHaps /home/jvierstra/data/1k_genomes/refpanel/m3vcfs/ALL.\${chrom}_GRCh38.genotypes.20170504.m3vcf.gz \
 	--haps \${TMPDIR}/prephased.chrom-fix.vcf \
@@ -57,9 +75,19 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 	--prefix ${output_dir}/\${chrom}.imputed \
 	--allTypedSites
 
+# sort and add 'chr' to contig names
+vcf-sort -p 4 ${output_dir}/\${chrom}.imputed.dose.vcf.gz \
+ | bcftools annotate --rename-chrs ${output_dir}/chroms.rename.txt \
+ | bgzip -c > ${output_dir}/\${chrom}.imputed.dose.vcf.gz.new
+
+mv ${output_dir}/\${chrom}.imputed.dose.vcf.gz.new ${output_dir}/\${chrom}.imputed.dose.vcf.gz
+tabix -p vcf ${output_dir}/\${chrom}.imputed.dose.vcf.gz
+
 __SCRIPT__
 
 sbatch --export=ALL --parsable \
 	--job-name=impute.genotype \
 	--array=1-$(wc -l < ${output_dir}/chroms.txt) \
 	 ${output_dir}/slurm.chunk
+
+exit 0
