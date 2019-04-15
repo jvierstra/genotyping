@@ -3,14 +3,16 @@
 # date : Apr.2019
 
 set dstamp = 2019-04-04
+set r2thold = 0.3
 set script = ~sjn/Github/phaser/phaser/phaser.py
 set bamd = ../data/$dstamp/bams
+set datad = ../data/$dstamp
 set donorsmatched = ../data/$dstamp/prodQC/donors.matched.simple # dnase-rnaseq matches
 set haplos = ../data/hg38_hla.chr.bed
 set haplo_blacklist = ../data/hg38_haplo_count_blacklist.chr.bed
-set vcfd = ../results/$dstamp/dnaseI/output/phasing
+set vcfd = ../results/$dstamp/dnaseI-SNV-combined/output/phasing-imputation
 set vcfds = (`find $vcfd -maxdepth 1 -mindepth 1 -type d`)
-set baseoutd = ../results/$dstamp/rnaseq/output/imputed
+set baseoutd = ../results/$dstamp/rnaseq.filteredR2/output/imputed
 
 source /net/module/Modules/default/tcsh
 
@@ -44,7 +46,7 @@ foreach d ($vcfds)
     foreach sample (`bcftools query -l $chr`)
       set samplenm = `echo $sample | tr '/' '.' | cut -f2- -d'.'`
       set dnasenm = $sample:t:r
-      set rnaseqnm = `awk -v d=$dnasenm '$3 == d { print $4 }' $donorsmatched`
+      set rnaseqnm = `awk -v d=$dnasenm '$5 == d { print $4 }' $donorsmatched`
       if ( $rnaseqnm == "" ) then
         printf "No-match %s\n" $dnasenm
         continue

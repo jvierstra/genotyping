@@ -5,14 +5,14 @@
 set dstamp = 2019-04-04
 set script = ~sjn/Github/phaser/phaser_gene_ae/phaser_gene_ae.py
 set genes = ../data/genes.bed
-set baseind = ../results/$dstamp/rnaseq/output/imputed
-set baseoutd = ../results/$dstamp/rnaseq-ae/output/expression
+set baseind = ../results/$dstamp/rnaseq.filteredR2/output/imputed
+set baseoutd = ../results/$dstamp/rnaseq-ae.filteredR2/output/expression
 
 source /net/module/Modules/default/tcsh
 
 module add anaconda/2.1.0-dev
 
-set envnm = conda-env-impute-rnaseseq-t3
+set envnm = conda-env-impute-rnaseq-t3
 set activator = `which conda`
 set activator = $activator:h/activate
 

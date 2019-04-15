@@ -1,11 +1,22 @@
-1) run-phasing-dnaseI.tcsh: creates phased files by chromosome over all samples using impute.sh (eagle and Minimac3)
+These scripts are written to work in the following directory structure:
+data/
+cp *.tcsh src/
+cp -R status src.stats/
 
-2) run-phaser-rnase.tcsh: uses dnaseI phased file and RNA-seq bam file to impute haplotype information per sample, per chromosome
-     "Requires a VCF and BAM, produces a VCF with computed haplotype phases and result files containing haplotype details,
-      statistics, and read counts. By default only sites with the "PASS" flag in the VCF will be considered..."
+There is the parallel directory described in data-creation/
+data/
 
-3) run-phaser-ae-rnase.tcsh: determines allelic expression over list of genes and log2fc of reference vs. alternate allele haplotype
-    The output is 1 line for every gene annotation (very large files), which is then filtered to only those where differences exist.
+These scripts create and dump calculations in results/
+1) run-phasing-imputation-dnaseI.tcsh -> phasing then imputatin using DNaseI tags
+2) combine-SNVs-imputed-dnaseI.tcsh -> aggregate results after filtering for R2>=0.3
+3) run-phaser-rnase.tcsh -> per individual haplotypes using DNaseI genotyping+imputation calls and RNA-seq
+     (note: copies over genotyping results into data/ ; when written *.tbi files were unavailable)
+4) run-phaser-ae-rnase.tcsh -> haplotypes and gene/transcript information to determine allelic expression
+5) combine-ae-rnase-annotations.tcsh -> aggregate allelic expression information
+6) filter-ae-rnase.tcsh -> simplify results, mark likely outliers, filter those and produce top/bottom 500.
 
-4) combine-ae-rnase-annotations.tcsh: 
-    Merges all allelic expression over all chromosomes and all samples into a final output
+These scripts create and dump calculations in results.stats/
+1) dnaseI.stats.tcsh
+2) rnaseq-stats.tcsh
+
+These create lots of background jobs on a machine for now (ran on dev0|1)
