@@ -4,7 +4,7 @@
 
 set dstamp = 2019-04-04
 set ddir = ../data/$dstamp
-set script = ~sjn/Github/genotyping/pipeline/impute.sh
+set script = ~sjn/Github/genotyping-jeff/genotyping/pipeline/impute.sh
 set vcfd = /net/seq/data/projects/altius-100-donors/archives/$dstamp/output
 set vcfs = ($vcfd/filtered.all.hets-pass.recoded-final.vcf.gz $vcfd/filtered.all.hets-pass.recoded-final-ard.vcf.gz $vcfd/filtered.all.vcf.gz)
 set baseoutd = ../results/$dstamp/dnaseI/output/phasing-imputation

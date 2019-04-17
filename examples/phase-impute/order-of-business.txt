@@ -1,22 +1,6 @@
-These scripts are written to work in the following directory structure:
-data/
-cp *.tcsh src/
-cp -R status src.stats/
-
-There is the parallel directory described in data-creation/
-data/
-
-These scripts create and dump calculations in results/
-1) run-phasing-imputation-dnaseI.tcsh -> phasing then imputatin using DNaseI tags
-2) combine-SNVs-imputed-dnaseI.tcsh -> aggregate results after filtering for R2>=0.3
-3) run-phaser-rnase.tcsh -> per individual haplotypes using DNaseI genotyping+imputation calls and RNA-seq
-     (note: copies over genotyping results into data/ ; when written *.tbi files were unavailable)
-4) run-phaser-ae-rnase.tcsh -> haplotypes and gene/transcript information to determine allelic expression
-5) combine-ae-rnase-annotations.tcsh -> aggregate allelic expression information
-6) filter-ae-rnase.tcsh -> simplify results, mark likely outliers, filter those and produce top/bottom 500.
-
-These scripts create and dump calculations in results.stats/
-1) dnaseI.stats.tcsh
-2) rnaseq-stats.tcsh
-
-These create lots of background jobs on a machine for now (ran on dev0|1)
+1) run-phasing-imputation-dnaseI.tcsh -> phasing then imputation using DNaseI tags
+2) combine-SNVs-imputed-dnaseI.tcsh -> aggregate results
+3) run-phaser-rnaseq.tcsh -> per individual haplotypes using DNaseI genotyping+imputation calls and RNA-seq
+4) run-phaser-ae-rnaseq.tcsh -> haplotypes and gene/transcript information to determine allelic expression
+5) combine-ae-rnaseq-annotations.tcsh -> aggregate allelic expression information
+6) filter-ae-rnaseq.tcsh -> simplify results, mark likely outliers, filter those and produce top/bottom 500.
