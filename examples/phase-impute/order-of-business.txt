@@ -4,3 +4,5 @@
 4) run-phaser-ae-rnaseq.tcsh -> haplotypes and gene/transcript information to determine allelic expression
 5) combine-ae-rnaseq-annotations.tcsh -> aggregate allelic expression information
 6) filter-ae-rnaseq.tcsh -> simplify results, mark likely outliers, filter those and produce top/bottom 500.
+7) map-individuals-ae-rnaseq.tcsh -> map on individual names and log2fc scores to ae results
+
