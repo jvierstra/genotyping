@@ -38,7 +38,7 @@ cat <<__SCRIPT__ > ${output_dir}/slurm.chunk
 #SBATCH --output=${output_dir}/logs/%A.%a.out
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
-#SBATCH --partition=queue1
+#SBATCH --partition=queue0
 
 set -e -o pipefail
 
@@ -47,10 +47,11 @@ module add bcftools/1.7
 module add htslib/1.7
 module add vcftools
 
-TMPDIR=/tmp/\$SLURM_JOB_ID
-mkdir -p \${TMPDIR}
+#TMPDIR=/tmp/\$SLURM_JOB_ID
 
 chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
+TMPDIR=$output_dir/\${chrom}
+mkdir -p \${TMPDIR}
 
 ## prephasing
 /home/jvierstra/.local/src/Eagle_v2.4.1/eagle \

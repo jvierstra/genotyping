@@ -2,11 +2,11 @@
 # author : sjn
 # date : Apr.2019
 
-set dstamp = 2019-04-04
+set dstamp = 2019-04-09
 set ddir = ../data/$dstamp
-set script = ~sjn/Github/genotyping-jeff/genotyping/pipeline/impute.sh
+set script = ~sjn/Github/genotyping/pipeline/impute.sh
 set vcfd = /net/seq/data/projects/altius-100-donors/archives/$dstamp/output
-set vcfs = ($vcfd/filtered.all.hets-pass.recoded-final.vcf.gz $vcfd/filtered.all.hets-pass.recoded-final-ard.vcf.gz $vcfd/filtered.all.vcf.gz)
+set vcfs = ($vcfd/filtered.all.hets-pass.recoded-final.vcf.gz $vcfd/filtered.all.vcf.gz) # $vcfd/filtered.all.hets-pass.recoded-final-ard.vcf.gz $vcfd/filtered.all.vcf.gz)
 set baseoutd = ../results/$dstamp/dnaseI/output/phasing-imputation
 
 source /net/module/Modules/default/tcsh
@@ -23,13 +23,6 @@ foreach vcf ($vcfs)
   set outd = $baseoutd/$nm
   mkdir -p $outd
 
-  bcftools query -l $vcf \
-    | sort \
-   >! $sampleorder
-
-  awk '{ print "Indiv-"NR }' $sampleorder \
-   >! $newsamplenames
-
   if ( ! -s $ddir/$vcf:t.tbi ) then
     module add htslib/1.7
     bcftools annotate --samples-file $sampleorder $vcf \
@@ -38,6 +31,8 @@ foreach vcf ($vcfs)
 
     tabix -p vcf $ddir/$vcf:t
   endif
+
+  set vcf = $ddir/$vcf:t
 
   bash $script $ddir/$vcf:t $sampleorder $newsamplenames $outd
 end

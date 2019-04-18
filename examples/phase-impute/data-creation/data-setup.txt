@@ -34,7 +34,9 @@ ln -s ~sjn/data/gencode/hg38/v29-comprehensive/gencode.v29.comprehensive.geneid.
 run-get-bams.tcsh : calls get-bams.bash to symlink bam/bai files needed by tag name
  This is specific to RNA-Seq
  There are some hardcoded field cuts (likely stable for 100donor project)
-
+get-dnaseI-samples.tcsh : creates sample.order and samples.order.renamed which should be
+ checked against previous date runs to ensure data has only been appended (otherwise
+ samples.order.renamed will be wrong)
 
 ************************************
 * data/$datestamp/prodQC/ directory
