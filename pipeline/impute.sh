@@ -1,11 +1,11 @@
 #!/bin/bash -x
 
 usage () {
-  echo -e "Usage: $0 <sigvars-vcf.gz> <sample/column order.txt> <new-sample-names.txt> <output-dir>" >&2
+  echo -e "Usage: $0 <sigvars-vcf.gz> <new-sample-names.txt> <output-dir>" >&2
   exit 2
 }
 
-if [[ $# != 4 ]]; then
+if [[ $# != 3 ]]; then
    usage
 fi
 
@@ -13,9 +13,8 @@ source /net/module/Modules/default/bash
 module add bcftools/1.7
 
 vcfgzfile=$1
-sampleorder=$2
-newsamplenames=$3
-output_dir=$4
+newsamplenames=$2
+output_dir=$3
 
 mkdir -p ${output_dir}/logs
 
@@ -80,7 +79,8 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 # sort and add 'chr' to contig names; put samples/columns in a deterministic order
 #  rename samples/columns to INDIV-{1 through N}
 vcf-sort -p 4 ${output_dir}/\${chrom}.imputed.dose.vcf.gz \
- | bcftools annotate --rename-chrs ${output_dir}/chroms.rename.txt --samples-file $sampleorder \
+ | bcftools annotate --rename-chrs ${output_dir}/chroms.rename.txt \
+ | vcf-shuffle-cols -t ${vcfgzfile} /dev/stdin \
  | bcftools reheader --samples $newsamplenames \
  | bgzip -c > ${output_dir}/\${chrom}.imputed.dose.vcf.gz.new
 
