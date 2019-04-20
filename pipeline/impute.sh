@@ -29,7 +29,7 @@ awk '{ print substr($1, 4), $1; }' ${output_dir}/chroms.txt > ${output_dir}/chro
 #	'{ for(i=0; i<$2; i+=winsize) { end=(i+winsize)>$2?$2:i+winsize;  print $1, i, end; } }' \
 #> {$output_dir}/chunks.txt
 
-
+foo=$(basename ${vcfgzfile})
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.chunk
 #!/bin/bash -x
@@ -50,6 +50,7 @@ TMPDIR=/tmp/\$SLURM_JOB_ID
 mkdir -p \${TMPDIR}
 
 chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -n 1\`)
+
 
 ## prephasing
 /home/jvierstra/.local/src/Eagle_v2.4.1/eagle \
@@ -80,8 +81,8 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 #  rename samples/columns to INDIV-{1 through N}
 vcf-sort -p 4 ${output_dir}/\${chrom}.imputed.dose.vcf.gz \
  | bcftools annotate --rename-chrs ${output_dir}/chroms.rename.txt \
- | vcf-shuffle-cols -t ${vcfgzfile} /dev/stdin \
  | bcftools reheader --samples $newsamplenames \
+ | vcf-shuffle-cols -t ${vcfgzfile} \
  | bgzip -c > ${output_dir}/\${chrom}.imputed.dose.vcf.gz.new
 
 mv ${output_dir}/\${chrom}.imputed.dose.vcf.gz.new ${output_dir}/\${chrom}.imputed.dose.vcf.gz
