@@ -29,7 +29,6 @@ awk '{ print substr($1, 4), $1; }' ${output_dir}/chroms.txt > ${output_dir}/chro
 #	'{ for(i=0; i<$2; i+=winsize) { end=(i+winsize)>$2?$2:i+winsize;  print $1, i, end; } }' \
 #> {$output_dir}/chunks.txt
 
-foo=$(basename ${vcfgzfile})
 
 cat <<__SCRIPT__ > ${output_dir}/slurm.chunk
 #!/bin/bash -x
