@@ -5,7 +5,7 @@
 set dstamp = 2019-04-04
 set r2thold = 0.3
 set vcfd = ../data/$dstamp
-set vcfs = ($vcfd/filtered.all.hets-pass.recoded-final.vcf.gz $vcfd/filtered.all.hets-pass.recoded-final-ard.vcf.gz $vcfd/filtered.all.vcf.gz)
+set vcfs = ($vcfd/filtered.all.hets-pass.recoded-final.renamed-cols.vcf.gz $vcfd/filtered.all.hets-pass.recoded-final-ard.renamed-cols.vcf.gz $vcfd/filtered.all.renamed-cols.vcf.gz)
 set baseind = ../results/$dstamp/dnaseI/output/phasing-imputation
 set baseoutd = ../results/$dstamp/dnaseI-SNV-combined/output/phasing-imputation
 

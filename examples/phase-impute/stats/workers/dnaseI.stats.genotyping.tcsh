@@ -11,7 +11,7 @@ set ddir = $1
 set outd = $2
 
 set indirGenotype = $ddir
-set genotypes = ($indirGenotype/filtered.all.vcf.gz)
+set genotypes = ($indirGenotype/filtered.all.renamed-cols.vcf.gz)
 set samplecounts = $ddir/prodQC/dna.readcount
 set sampleorder_newnames = $ddir/sample.order.renamed
 set sampleorder_oldnames = $ddir/sample.order

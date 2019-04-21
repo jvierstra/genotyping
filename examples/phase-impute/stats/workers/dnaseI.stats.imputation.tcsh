@@ -13,7 +13,7 @@ set outd = $3
 
 set r2thresh = 0.3
 set indirImpute = $ind
-set genotypes = ($ddir/filtered.all.vcf.gz)
+set genotypes = ($ddir/filtered.all.renamed-cols.vcf.gz)
 set imputeOutd = $outd
 
 source /net/module/Modules/default/tcsh

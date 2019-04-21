@@ -3,10 +3,10 @@
 # date : Apr.2019
 
 set dstamp = 2019-04-04
-set baseind = ../results/$dstamp/rnaseq-ae.filteredR2/output/expression/filtered.all
+set baseind = ../results/$dstamp/rnaseq-ae.filteredR2/output/expression/filtered.all.renamed-cols
 set calls = $baseind/final.ae.best.with-header.bed # already filtered out "inf"
 set rosetta = ../data/$dstamp/prodQC/donors.matched.simple
-set baseoutd = ../results.simple/$dstamp/allelic.expression
+set baseoutd = ../results.simple/$dstamp/allelic.expression.renamed-cols
 
 mkdir -p $baseoutd
 
