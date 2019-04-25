@@ -49,7 +49,7 @@ awk 'NR > 1' $calls \
     }' \
   | tee $baseind/$calls:t:r.uniqs.txt \
   | awk '$1 !~ /^\*/' \
-  | sort -nk4,4 \
+  | sort -nk7,7 \
   | (head -500; tail -500) \
  >! $baseind/$calls:t:r:r.tophits.filtered.txt.tmp
 
