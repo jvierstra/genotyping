@@ -54,8 +54,8 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 /home/jvierstra/.local/src/Eagle_v2.4.1/eagle \
 	--numThreads 16 \
 	--outPrefix \${TMPDIR}/prephased \
-	--geneticMapFile /home/jvierstra/.local/src/Eagle_v2.4.1/tables/genetic_map_hg38_withX.txt.gz \
-	--vcfRef /home/jvierstra/data/1k_genomes/refpanel/bcf/ALL.\${chrom}_GRCh38.genotypes.20170504.bcf \
+	--geneticMapFile /home/sjn/data/eagle/genetic_map_hg19_withX.txt.gz \
+	--vcfRef /home/sjn/data/eagle/1k_genomes/refpanel/hg19/vcf/renamed/ALL.\${chrom}.genotypes.bcf \
 	--vcfTarget ${vcfgzfile} \
 	--vcfOutFormat u \
 	--allowRefAltSwap \
@@ -69,7 +69,7 @@ chrom=(\`cat ${output_dir}/chroms.txt | head -n \${SLURM_ARRAY_TASK_ID} | tail -
 
 # produces unsorted vcf file (tabix complains) without 'chr' in contig names
 /home/jvierstra/.local/src/Minimac3/bin/Minimac3-omp \
-	--refHaps /home/jvierstra/data/1k_genomes/refpanel/m3vcfs/ALL.\${chrom}_GRCh38.genotypes.20170504.m3vcf.gz \
+	--refHaps /home/sjn/data/minimac3/refpanel/1k_genomes/hg19/ALL.\${chrom}.1000g.Phase3.v5.With.Parameter.Estimates.m3vcf.gz \
 	--haps \${TMPDIR}/prephased.chrom-fix.vcf \
 	--chr \${chrom#chr} \
 	--prefix ${output_dir}/\${chrom}.imputed \

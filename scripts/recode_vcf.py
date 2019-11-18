@@ -28,7 +28,7 @@ def main(argv = sys.argv[1:]):
 
 	args = parse_options(argv)
 
-	infile=pysam.VariantFile(args.input_file, ignore_truncation=True)
+	infile=pysam.VariantFile(args.input_file) #(getting error) ignore_truncation=True)
 
 	outfile=pysam.VariantFile(args.output_file, mode='w', header=infile.header)
 

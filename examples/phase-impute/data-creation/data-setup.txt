@@ -1,0 +1,58 @@
+******************
+* data/ directory
+******************
+
+#########################################
+# blacklists and others needed by phaser
+#########################################
+Don't trust that anything is sorted per sort-bed
+
+wget https://www.encodeproject.org/files/ENCFF419RSJ/@@download/ENCFF419RSJ.bed.gz
+gunzip ENCFF419RSJ.bed.gz
+sort-bed ENCFF419RSJ.bed > hg38.blacklist.bed
+rm -f ENCFF419RSJ.bed
+
+from phaser on githup (hg38)
+https://www.dropbox.com/s/1zapu5n4aeyi1g6/hg38_hla.chr.bed.gz?dl=0
+https://www.dropbox.com/s/9cn9477bcutvuc7/hg38_haplo_count_blacklist.chr.bed.gz?dl=0
+gunzip these
+
+########
+# genes
+########
+create genes.bed with something similar to
+ln -s ~sjn/data/gencode/hg38/v29-comprehensive/gencode.v29.comprehensive.geneid.bed genes.bed
+
+
+*****************************
+* data/$datestamp/ directory
+*****************************
+
+####################
+# bams - query LIMS
+####################
+run-get-rnaseq-bams.tcsh : calls get-rnaseq-bams.bash to symlink bam/bai files needed by tag name
+ This is specific to RNA-Seq
+ There are some hardcoded field cuts (likely stable for 100donor project)
+get-dnaseI-samples.tcsh : creates sample.order and samples.order.renamed which should be
+ checked against previous date runs to ensure data has only been appended (otherwise
+ samples.order.renamed will be wrong)
+
+************************************
+* data/$datestamp/prodQC/ directory
+************************************
+Get csv export from LIMS prodQC for relevant DNaseI and RNA samples
+This are cleaned up with process-prodqc.tcsh
+You need to add a few columns before exporting
+Column numbers used will depend upon your selections during export.
+Require donor and aggregation ID information
+
+###############################################################################
+# Link DNaseI AGs to corresponding RNA-Seq AGs and change names to Indiv-{1:N}
+###############################################################################
+match-donors.tcsh:
+  be careful on future runs to keep new IDs consistent this will not happen automagically as
+  written - we just do a simple dictionary sort the first time around.  These need to remain
+  the same after the 2019-04-04 collection.
+both match-donors.tcsh and snag-nreads.tsh have hardcoded column cut-outs which are specific
+  to the post-processing of the csv export and will likely change.
